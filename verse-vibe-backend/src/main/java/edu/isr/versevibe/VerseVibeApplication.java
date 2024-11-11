@@ -8,18 +8,6 @@ import edu.isr.versevibe.dto.SpotifyResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
-/*
-@SpringBootApplication
-public class VerseVibeApplication {
-
-    public static void main(String[] args) {
-        CSVUtils.readCSV("src/main/resources/documents/song_lyrics.csv");
-        SpringApplication.run(VerseVibeApplication.class, args);
-
-    }
-}
- */
-
 @SpringBootApplication
 public class VerseVibeApplication implements CommandLineRunner {
 
