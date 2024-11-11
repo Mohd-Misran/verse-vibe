@@ -49,11 +49,11 @@ public class DefaultIndexingService implements IndexingService {
     }
 
     @SneakyThrows
-    public <T> void bulkIndex(final String indexName, final List<T> documents) {
+    public <SongDocument> void bulkIndex(final String indexName, final List<SongDocument> documents) {
         List<BulkOperation> operations = new ArrayList<>();
         for (int i = 0; i < documents.size(); i++) {
             final String id = String.valueOf(i);
-            final T document = documents.get(i);
+            final SongDocument document = documents.get(i);
             // Create bulk operation for each document
             final BulkOperation operation =
                     BulkOperation.of(op -> op.index(idx -> idx.index(indexName).id(id).document(document)));
