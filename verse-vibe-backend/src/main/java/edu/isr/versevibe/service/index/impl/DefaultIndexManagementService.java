@@ -8,19 +8,33 @@ import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import co.elastic.clients.elasticsearch.indices.CreateIndexResponse;
 import co.elastic.clients.elasticsearch.indices.DeleteIndexResponse;
 import co.elastic.clients.elasticsearch.indices.ExistsRequest;
+import com.fasterxml.jackson.databind.MappingIterator;
+import edu.isr.versevibe.dto.SongDocument;
 import edu.isr.versevibe.service.index.IndexManagementService;
+import edu.isr.versevibe.utils.CSVUtils;
+import edu.isr.versevibe.utils.IOUtils;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
+import static edu.isr.versevibe.constants.Constants.ATTRIBUTE_MAPPINGS;
+import static edu.isr.versevibe.constants.Constants.INDEX_NAME;
 
 @Getter
 public class DefaultIndexManagementService implements IndexManagementService {
     private final ElasticsearchClient searchClient;
-    private static final int BATCH_SIZE = 1000;
+
+    @Value("${lyrics.file.path}")
+    private String filePath;
+
+    @Value("${document.batch.size}")
+    private int batchSize;
 
     public DefaultIndexManagementService(final ElasticsearchClient searchClient) {
         this.searchClient = searchClient;
@@ -65,7 +79,7 @@ public class DefaultIndexManagementService implements IndexManagementService {
                     BulkOperation.of(op -> op.index(idx -> idx.index(indexName).id(id).document(document)));
             operations.add(operation);
             // Process in batches
-            if (operations.size() >= BATCH_SIZE) {
+            if (operations.size() >= batchSize) {
                 executeBulkRequest(operations);
                 operations.clear();
                 System.out.println("Indexed " + (i + 1) + " documents");
@@ -104,6 +118,33 @@ public class DefaultIndexManagementService implements IndexManagementService {
     private boolean deleteIndex(String indexName) throws IOException {
         final DeleteIndexResponse response = searchClient.indices().delete(d -> d.index(indexName));
         return response.acknowledged();
+    }
+
+    @SneakyThrows
+    public void indexDocuments() {
+        int documentCounter = 0;
+        List<SongDocument> songDocumentList = new ArrayList<>(batchSize);
+        deleteIndexIfExists(INDEX_NAME);
+        System.out.println("------------------------------------------------------------------------");
+        System.out.println("Indexing song documents");
+        final boolean indexCreated = createIndex(INDEX_NAME, ATTRIBUTE_MAPPINGS);
+        try (MappingIterator<Map<String, String>> csvIterator = IOUtils.initReader(filePath)) {
+            if (Boolean.TRUE.equals(indexCreated)) {
+                while (csvIterator.hasNext()) {
+                    if (documentCounter >= batchSize) {
+                        bulkIndex(INDEX_NAME, songDocumentList);
+                        documentCounter = 0;
+                        songDocumentList = new ArrayList<>();
+                    }
+                    final Map<String, String> csvRecord = csvIterator.next();
+                    final SongDocument songDocument = CSVUtils.populateSongDTO(csvRecord);
+                    songDocumentList.add(songDocument);
+                    documentCounter++;
+                }
+            } else {
+                System.out.println("Error while creating index");
+            }
+        }
     }
 
 }

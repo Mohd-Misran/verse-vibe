@@ -12,4 +12,6 @@ public interface IndexManagementService {
             throws IOException;
 
     boolean deleteIndexIfExists(final String indexName) throws IOException;
+
+    void indexDocuments();
 }
