@@ -130,3 +130,13 @@ services:
       interval: 10s
       timeout: 10s
       retries: 120
+
+  frontend:
+    image: node:23.1.0
+    working_dir: /app
+    volumes:
+      - ./verse-vibe-frontend:/app
+      - /app/node_modules
+    ports:
+      - ${NEXT_APP_PORT}:3000
+    command: 'sh -c "npm install && npm run dev"'
