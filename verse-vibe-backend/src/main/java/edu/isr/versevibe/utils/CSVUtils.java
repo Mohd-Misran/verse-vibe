@@ -1,61 +1,38 @@
 package edu.isr.versevibe.utils;
 
-import com.opencsv.CSVReader;
 import edu.isr.versevibe.dto.SongDocument;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 public class CSVUtils {
-    private static final int batchSize = 1000;
-    private static boolean endOfFile = false;
 
     @SneakyThrows
-    public static Pair<List<SongDocument>, Boolean> readCSV(final CSVReader csvReader) {
-        int documentCounter = 0;
-        final List<SongDocument> songDocumentList = new ArrayList<>();
-        String[] nextRecord;
-        while (Boolean.FALSE.equals(endOfFile) && documentCounter < batchSize) {
-            nextRecord = csvReader.readNext();
-            documentCounter++;
-            if (Objects.nonNull(nextRecord)) {
-                final SongDocument songDocument = populateSongDTO(nextRecord);
-                if (Objects.nonNull(songDocument)) {
-                    songDocumentList.add(songDocument);
-                }
-            } else {
-                endOfFile = true;
-                csvReader.close();
-            }
-        }
-        return Pair.of(songDocumentList, endOfFile);
-    }
-
-    private static SongDocument populateSongDTO(final String[] nextRecord) {
+    public static SongDocument populateSongDTO(final Map<String, String> csvRecord) {
         try {
             final SongDocument songDocument = new SongDocument();
-            songDocument.setTitle(nextRecord[0]);
-            songDocument.setTag(nextRecord[1]);
-            songDocument.setArtist(new ArrayList<>(populateArtistData(nextRecord[2], nextRecord[5])));
-            songDocument.setYear(nextRecord[3]);
-            songDocument.setFeatures(nextRecord[5]);
-            songDocument.setLyrics(nextRecord[6]);
-            songDocument.setId(nextRecord[7]);
-            songDocument.setLanguage(nextRecord[10]);
+            songDocument.setTitle(csvRecord.getOrDefault("title", null));
+            songDocument.setTag(csvRecord.getOrDefault("tag", null));
+            songDocument.setArtist(new ArrayList<>(populateArtistData(csvRecord.getOrDefault("artist", null),
+                    csvRecord.getOrDefault("features", null))));
+            songDocument.setYear(csvRecord.getOrDefault("year", null));
+            songDocument.setFeatures(csvRecord.getOrDefault("features", null));
+            songDocument.setLyrics(csvRecord.getOrDefault("lyrics", null));
+            songDocument.setId(csvRecord.getOrDefault("id", null));
+            songDocument.setLanguage(csvRecord.getOrDefault("language_ft", null));
             songDocument.setGeneratedAt(new Date());
             return songDocument;
         } catch (Exception e) {
             System.out.println("Exception while reading CSV.");
-            return null;
+            throw new RuntimeException(e);
         }
     }
 
