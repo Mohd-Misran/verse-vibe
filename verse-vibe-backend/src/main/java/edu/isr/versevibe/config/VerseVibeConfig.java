@@ -16,11 +16,6 @@ public class VerseVibeConfig {
     }
 
     @Bean
-    public StartupComponent startupComponent() {
-        return new StartupComponent();
-    }
-
-    @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
