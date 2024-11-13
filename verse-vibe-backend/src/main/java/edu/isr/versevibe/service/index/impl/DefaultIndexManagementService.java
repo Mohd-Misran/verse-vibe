@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import static edu.isr.versevibe.constants.Constants.ATTRIBUTE_MAPPINGS;
+import static edu.isr.versevibe.constants.Constants.INDEX_CREATION_ERROR;
 import static edu.isr.versevibe.constants.Constants.INDEX_NAME;
 
 @Getter
@@ -54,7 +55,7 @@ public class DefaultIndexManagementService implements IndexManagementService {
                 return true;
             }
         } catch (Exception e) {
-            System.err.println("Error while creating index: " + e.getMessage());
+            System.err.println(INDEX_CREATION_ERROR + e.getMessage());
             return false;
         }
     }
@@ -74,18 +75,15 @@ public class DefaultIndexManagementService implements IndexManagementService {
         for (int i = 0; i < documents.size(); i++) {
             final String id = String.valueOf(i);
             final SongDocument document = documents.get(i);
-            // Create bulk operation for each document
             final BulkOperation operation =
                     BulkOperation.of(op -> op.index(idx -> idx.index(indexName).id(id).document(document)));
             operations.add(operation);
-            // Process in batches
             if (operations.size() >= batchSize) {
                 executeBulkRequest(operations);
                 operations.clear();
                 System.out.println("Indexed " + (i + 1) + " documents");
             }
         }
-        // Index any remaining documents
         if (!operations.isEmpty()) {
             executeBulkRequest(operations);
         }
@@ -95,7 +93,6 @@ public class DefaultIndexManagementService implements IndexManagementService {
     private void executeBulkRequest(List<BulkOperation> operations) {
         BulkRequest bulkRequest = BulkRequest.of(req -> req.operations(operations));
         BulkResponse response = getSearchClient().bulk(bulkRequest);
-        // Check for errors
         if (response.errors()) {
             System.out.println("Bulk indexing had errors");
             response.items().forEach(item -> {
@@ -142,7 +139,7 @@ public class DefaultIndexManagementService implements IndexManagementService {
                     documentCounter++;
                 }
             } else {
-                System.out.println("Error while creating index");
+                System.out.println(INDEX_CREATION_ERROR);
             }
         }
     }
