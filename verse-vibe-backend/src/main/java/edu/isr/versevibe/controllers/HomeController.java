@@ -17,11 +17,4 @@ public class HomeController {
     public String home() {
         return "Hello World";
     }
-
-    @SneakyThrows
-    @GetMapping("/search")
-    public String search(@RequestParam String lyrics) {
-        searchService.searchAcrossFields(lyrics);
-        return null;
-    }
 }
