@@ -1,4 +1,4 @@
-package edu.isr.versevibe.service.indexing.impl;
+package edu.isr.versevibe.service.index.impl;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
@@ -6,8 +6,9 @@ import co.elastic.clients.elasticsearch.core.BulkResponse;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import co.elastic.clients.elasticsearch.indices.CreateIndexResponse;
+import co.elastic.clients.elasticsearch.indices.DeleteIndexResponse;
 import co.elastic.clients.elasticsearch.indices.ExistsRequest;
-import edu.isr.versevibe.service.indexing.IndexingService;
+import edu.isr.versevibe.service.index.IndexManagementService;
 import lombok.Getter;
 import lombok.SneakyThrows;
 
@@ -17,29 +18,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-public class DefaultIndexingService implements IndexingService {
+public class DefaultIndexManagementService implements IndexManagementService {
     private final ElasticsearchClient searchClient;
     private static final int BATCH_SIZE = 1000;
 
-    public DefaultIndexingService(final ElasticsearchClient searchClient) {
+    public DefaultIndexManagementService(final ElasticsearchClient searchClient) {
         this.searchClient = searchClient;
     }
 
     @SneakyThrows
     @Override
     public boolean createIndex(final String indexName, final String attributeMappings) {
-        // Check if index exists
-        final boolean exists =
-                getSearchClient().indices().exists(ExistsRequest.of(index -> index.index(indexName))).value();
-        if (Boolean.FALSE.equals(exists)) {
-            final CreateIndexResponse response = getSearchClient().indices()
-                    .create(index -> index.index(indexName).withJson(new StringReader(attributeMappings)));
-            return response.acknowledged();
+        try {
+            final boolean exists =
+                    getSearchClient().indices().exists(ExistsRequest.of(index -> index.index(indexName))).value();
+            if (Boolean.FALSE.equals(exists)) {
+                final CreateIndexResponse response = getSearchClient().indices()
+                        .create(index -> index.index(indexName).withJson(new StringReader(attributeMappings)));
+                return response.acknowledged();
+            } else {
+                return true;
+            }
+        } catch (Exception e) {
+            System.err.println("Error while creating index: " + e.getMessage());
+            return false;
         }
-        return false;
     }
 
-    public <T> void indexDocument(String indexName, String id, T document) throws IOException {
+    public <SongDocument> void indexDocument(String indexName, String id, SongDocument document) throws IOException {
         IndexResponse response = getSearchClient().index(i -> i
                 .index(indexName)
                 .id(id)
@@ -84,6 +90,20 @@ public class DefaultIndexingService implements IndexingService {
                 }
             });
         }
+    }
+
+    @Override
+    public boolean deleteIndexIfExists(String indexName) throws IOException {
+        final boolean exists = searchClient.indices().exists(e -> e.index(indexName)).value();
+        if (exists) {
+            return deleteIndex(indexName);
+        }
+        return false;
+    }
+
+    private boolean deleteIndex(String indexName) throws IOException {
+        final DeleteIndexResponse response = searchClient.indices().delete(d -> d.index(indexName));
+        return response.acknowledged();
     }
 
 }

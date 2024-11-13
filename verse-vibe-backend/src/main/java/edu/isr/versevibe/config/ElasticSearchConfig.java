@@ -11,6 +11,8 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
 import org.elasticsearch.client.RestClient;
 
+import static edu.isr.versevibe.constants.Constants.HTTP;
+
 public class ElasticSearchConfig {
     private static final String HOST = "localhost";
     private static final int PORT = 9200;
@@ -22,7 +24,7 @@ public class ElasticSearchConfig {
         try {
             final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
             credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(USERNAME, PASSWORD));
-            RestClient restClient = RestClient.builder(new HttpHost(HOST, PORT, "http")).setHttpClientConfigCallback(
+            RestClient restClient = RestClient.builder(new HttpHost(HOST, PORT, HTTP)).setHttpClientConfigCallback(
                     httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider)
                             .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy())).build();
             final ElasticsearchTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper());

@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.net.http.HttpRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
@@ -41,14 +42,13 @@ public class DefaultSpotifyService implements SpotifyService {
     public SpotifyResponse searchTrack(String trackName, String artistName) {
         String accessToken = getAccessToken();
         String query = String.format("track:\"%s\" artist:\"%s\"", trackName, artistName);
-        System.out.println("Query: " + query);
 
         String url = UriComponentsBuilder.fromHttpUrl(apiBaseUrl + "/search")
                 .queryParam("q", query)
                 .queryParam("type", "track")
-                .queryParam("market","US")
-                .queryParam("limit",5)
-                .queryParam("offset",0)
+                .queryParam("market", "US")
+                .queryParam("limit", 5)
+                .queryParam("offset", 0)
                 .toUriString();
         System.out.println("URL: " + url);
 
@@ -63,7 +63,6 @@ public class DefaultSpotifyService implements SpotifyService {
                 entity,
                 SpotifyResponse.class
         );
-//        System.out.println("Response: " + response.getBody());
         return response.getBody();
     }
 
@@ -91,7 +90,6 @@ public class DefaultSpotifyService implements SpotifyService {
                 Map.class
         );
 
-        // Extract and return the access token from the response
         Map<String, Object> responseBody = response.getBody();
         if (responseBody != null) {
             System.out.println("Generated Access Token: " + responseBody.get("access_token"));

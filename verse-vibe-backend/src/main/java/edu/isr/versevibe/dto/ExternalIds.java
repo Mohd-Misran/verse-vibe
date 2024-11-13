@@ -4,10 +4,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Setter;
 
 @Setter
-public class ExternalIds{
+public class ExternalIds {
     @JsonProperty("isrc")
-    public String getIsrc() { 
-		 return this.isrc; }
+    public String getIsrc() {
+        return this.isrc;
+    }
 
     @Override
     public String toString() {

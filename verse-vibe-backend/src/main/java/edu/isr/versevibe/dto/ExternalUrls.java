@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Setter;
 
 @Setter
-public class ExternalUrls{
+public class ExternalUrls {
     @Override
     public String toString() {
         return "ExternalUrls{" +
@@ -13,8 +13,9 @@ public class ExternalUrls{
     }
 
     @JsonProperty("spotify")
-    public String getSpotify() { 
-		 return this.spotify; }
+    public String getSpotify() {
+        return this.spotify;
+    }
 
     String spotify;
 }

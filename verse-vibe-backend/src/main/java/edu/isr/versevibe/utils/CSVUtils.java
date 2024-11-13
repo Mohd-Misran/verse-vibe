@@ -4,8 +4,8 @@ import com.opencsv.CSVReader;
 import edu.isr.versevibe.dto.SongDocument;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
-import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -16,33 +16,47 @@ import java.util.Set;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 public class CSVUtils {
+    private static final int batchSize = 1000;
+    private static boolean endOfFile = false;
+
     @SneakyThrows
-    public static List<SongDocument> readCSV(final String filePath) {
-        //TODO Implement Batch Size processing
+    public static Pair<List<SongDocument>, Boolean> readCSV(final CSVReader csvReader) {
+        int documentCounter = 0;
         final List<SongDocument> songDocumentList = new ArrayList<>();
-        final FileReader fileReader = new FileReader(filePath);
-        final CSVReader csvReader = new CSVReader(fileReader);
-        final String[] ignoredHeader = csvReader.readNext();
         String[] nextRecord;
-        while (Objects.nonNull(nextRecord = csvReader.readNext())) {
-            final SongDocument songDocument = populateSongDTO(nextRecord);
-            songDocumentList.add(songDocument);
+        while (Boolean.FALSE.equals(endOfFile) && documentCounter < batchSize) {
+            nextRecord = csvReader.readNext();
+            documentCounter++;
+            if (Objects.nonNull(nextRecord)) {
+                final SongDocument songDocument = populateSongDTO(nextRecord);
+                if (Objects.nonNull(songDocument)) {
+                    songDocumentList.add(songDocument);
+                }
+            } else {
+                endOfFile = true;
+                csvReader.close();
+            }
         }
-        return songDocumentList;
+        return Pair.of(songDocumentList, endOfFile);
     }
 
     private static SongDocument populateSongDTO(final String[] nextRecord) {
-        final SongDocument songDocument = new SongDocument();
-        songDocument.setTitle(nextRecord[0]);
-        songDocument.setTag(nextRecord[1]);
-        songDocument.setArtist(new ArrayList<>(populateArtistData(nextRecord[2], nextRecord[5])));
-        songDocument.setYear(nextRecord[3]);
-        songDocument.setFeatures(nextRecord[5]);
-        songDocument.setLyrics(nextRecord[6]);
-        songDocument.setId(nextRecord[7]);
-        songDocument.setLanguage(nextRecord[10]);
-        songDocument.setGeneratedAt(new Date());
-        return songDocument;
+        try {
+            final SongDocument songDocument = new SongDocument();
+            songDocument.setTitle(nextRecord[0]);
+            songDocument.setTag(nextRecord[1]);
+            songDocument.setArtist(new ArrayList<>(populateArtistData(nextRecord[2], nextRecord[5])));
+            songDocument.setYear(nextRecord[3]);
+            songDocument.setFeatures(nextRecord[5]);
+            songDocument.setLyrics(nextRecord[6]);
+            songDocument.setId(nextRecord[7]);
+            songDocument.setLanguage(nextRecord[10]);
+            songDocument.setGeneratedAt(new Date());
+            return songDocument;
+        } catch (Exception e) {
+            System.out.println("Exception while reading CSV.");
+            return null;
+        }
     }
 
     @SneakyThrows
