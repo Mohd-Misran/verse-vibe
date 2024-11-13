@@ -18,9 +18,7 @@ public class SpotifyResponse {
 
     @JsonProperty("tracks")
     public Tracks getTracks() {
-
-		 return this.tracks;
+        return this.tracks;
     }
-
 
 }

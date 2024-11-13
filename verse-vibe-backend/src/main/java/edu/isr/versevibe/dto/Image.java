@@ -4,10 +4,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Setter;
 
 @Setter
-public class Image{
+public class Image {
     @JsonProperty("height")
-    public int getHeight() { 
-		 return this.height; }
+    public int getHeight() {
+        return this.height;
+    }
 
     int height;
 
@@ -21,13 +22,16 @@ public class Image{
     }
 
     @JsonProperty("url")
-    public String getUrl() { 
-		 return this.url; }
+    public String getUrl() {
+        return this.url;
+    }
 
     String url;
-    @JsonProperty("width") 
-    public int getWidth() { 
-		 return this.width; }
+
+    @JsonProperty("width")
+    public int getWidth() {
+        return this.width;
+    }
 
     int width;
 }
