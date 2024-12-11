@@ -8,9 +8,6 @@ public interface IndexManagementService {
 
     <SongDocument> void bulkIndex(final String indexName, final List<SongDocument> documents);
 
-    <SongDocument> void indexDocument(final String indexName, final String id, final SongDocument document)
-            throws IOException;
-
     boolean deleteIndexIfExists(final String indexName) throws IOException;
 
     void indexDocuments();

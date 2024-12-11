@@ -19,7 +19,7 @@ public class IOUtils {
         try {
             final CsvMapper mapper = new CsvMapper();
             final CsvSchema schema = CsvSchema.emptySchema().withHeader();
-            return mapper.readerFor(Map.class).with(schema).readValues(new File(filePath));
+            return mapper.readerFor(Map.class).with(schema).readValues(new File("D:\\Term Project\\ISR\\isr-term-project\\verse-vibe-backend\\src\\main\\resources\\documents\\song_lyrics.csv"));
         } catch (IOException exception) {
             final Logger logger = Logger.getAnonymousLogger();
             logger.log(Level.SEVERE, FILE_NOT_FOUND_MSG, exception);
