@@ -14,6 +14,7 @@ import edu.isr.versevibe.service.index.IndexManagementService;
 import edu.isr.versevibe.utils.CSVUtils;
 import edu.isr.versevibe.utils.IOUtils;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -22,6 +23,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static edu.isr.versevibe.constants.Constants.ATTRIBUTE_MAPPINGS;
 import static edu.isr.versevibe.constants.Constants.INDEX_CREATION_ERROR;
@@ -30,7 +32,7 @@ import static edu.isr.versevibe.constants.Constants.INDEX_NAME;
 @Getter
 public class DefaultIndexManagementService implements IndexManagementService {
     private final ElasticsearchClient searchClient;
-
+    private int indexedDocumentsCount;
     @Value("${lyrics.file.path}")
     private String filePath;
 
@@ -39,6 +41,7 @@ public class DefaultIndexManagementService implements IndexManagementService {
 
     public DefaultIndexManagementService(final ElasticsearchClient searchClient) {
         this.searchClient = searchClient;
+        this.indexedDocumentsCount = 0;
     }
 
     @SneakyThrows
@@ -60,34 +63,20 @@ public class DefaultIndexManagementService implements IndexManagementService {
         }
     }
 
-    public <SongDocument> void indexDocument(String indexName, String id, SongDocument document) throws IOException {
-        IndexResponse response = getSearchClient().index(i -> i
-                .index(indexName)
-                .id(id)
-                .document(document)
-        );
-        System.out.println("Indexed document " + response.id());
-    }
-
     @SneakyThrows
     public <SongDocument> void bulkIndex(final String indexName, final List<SongDocument> documents) {
-        List<BulkOperation> operations = new ArrayList<>();
-        for (int i = 0; i < documents.size(); i++) {
-            final String id = String.valueOf(i);
-            final SongDocument document = documents.get(i);
+        final List<BulkOperation> operations = new ArrayList<>();
+        for (SongDocument document : documents) {
+            final String id = UUID.randomUUID().toString();
             final BulkOperation operation =
                     BulkOperation.of(op -> op.index(idx -> idx.index(indexName).id(id).document(document)));
             operations.add(operation);
-            if (operations.size() >= batchSize) {
-                executeBulkRequest(operations);
-                operations.clear();
-                System.out.println("Indexed " + (i + 1) + " documents");
-            }
+            this.indexedDocumentsCount++;
         }
-        if (!operations.isEmpty()) {
-            executeBulkRequest(operations);
-        }
+        executeBulkRequest(operations);
+        System.out.println("Indexed " + this.indexedDocumentsCount + " documents");
     }
+
 
     @SneakyThrows
     private void executeBulkRequest(List<BulkOperation> operations) {
@@ -138,10 +127,12 @@ public class DefaultIndexManagementService implements IndexManagementService {
                     songDocumentList.add(songDocument);
                     documentCounter++;
                 }
+                if (Boolean.FALSE.equals(songDocumentList.isEmpty())) {
+                    bulkIndex(INDEX_NAME, songDocumentList);
+                }
             } else {
                 System.out.println(INDEX_CREATION_ERROR);
             }
         }
     }
-
 }
