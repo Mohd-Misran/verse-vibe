@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static edu.isr.versevibe.constants.Constants.INDEX_NAME;
 
@@ -25,9 +26,18 @@ public class DefaultSongSearchService implements SongSearchService {
 
     @Override
     public List<Song> searchAcrossFields(String searchTerm) throws IOException {
-        final SearchResponse<SongDocument> searchResponse = elasticsearchClient.search(s -> s.index(INDEX_NAME)
-                        .query(q -> q.multiMatch(m -> m.fields("title", "lyrics^1.5", "artist").query(searchTerm))),
-                SongDocument.class);
+        final SearchResponse<SongDocument> searchResponse = elasticsearchClient
+                .search(
+                        s -> s.index(INDEX_NAME)
+                                .query(q -> q.multiMatch(
+                                        m -> m.fields(
+                                                        "title",
+                                                        "lyrics^1.5",
+                                                        "artist"
+                                                )
+                                                .query(searchTerm))),
+                        SongDocument.class
+                );
         return extractHits(searchResponse);
     }
 
@@ -35,11 +45,15 @@ public class DefaultSongSearchService implements SongSearchService {
         List<Song> songs = new ArrayList<>();
         for (Hit<SongDocument> hit : response.hits().hits()) {
             final SongDocument songDocument = hit.source();
-            final Song song = new Song();
-            song.setTitle(songDocument.getTitle());
-            song.setArtist(songDocument.getArtist());
-            song.setYear(songDocument.getYear());
-            songs.add(song);
+            if (Objects.nonNull(songDocument)) {
+                final Song song = new Song();
+                song.setElasticsearchId(hit.id());
+                song.setId(songDocument.getId());
+                song.setTitle(songDocument.getTitle());
+                song.setArtist(songDocument.getArtist());
+                song.setYear(songDocument.getYear());
+                songs.add(song);
+            }
         }
         return songs;
     }
