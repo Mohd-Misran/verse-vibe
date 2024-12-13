@@ -8,7 +8,7 @@ import java.util.List;
 
 @Getter
 @Setter
-class Album extends SongMetadata {
+public class Album extends SongMetadata {
     private String releaseDate;
     private List<Image> images;
 }

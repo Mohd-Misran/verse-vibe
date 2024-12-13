@@ -30,8 +30,8 @@ public class SongSearchController {
     public List<SongResult> getSongInformation(@RequestParam final String searchQuery) {
         List<Song> songs = songSearchService.searchAcrossFields(searchQuery);
         List<SongResult> songResults = new ArrayList<>();
-        for (Song song: songs) {
-            String artist = song.getArtists().isEmpty() ? null: song.getArtists().get(0);
+        for (Song song : songs) {
+            String artist = song.getArtists().isEmpty() ? null : song.getArtists().get(0);
             SpotifySearchResponse spotifyResponse = spotifyService.searchTrack(song.getTitle(), artist);
             songResults.add(SongMapper.toSongResult(song, spotifyResponse));
         }
