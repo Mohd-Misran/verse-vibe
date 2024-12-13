@@ -5,7 +5,8 @@ import styles from './SearchBox.module.css';
 interface SearchBoxProps {
   value: string;
   onChange: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
-  onClick: MouseEventHandler<HTMLButtonElement>;
+  search: MouseEventHandler<HTMLButtonElement>;
+  clearResults: MouseEventHandler<HTMLButtonElement>;
 }
 
 export default function SearchBox(props: SearchBoxProps) {
@@ -21,9 +22,16 @@ export default function SearchBox(props: SearchBoxProps) {
         className={styles['search-button']}
         variant="contained"
         disabled={!props.value.trim()}
-        onClick={(event) => props.onClick(event)}
+        onClick={(event) => props.search(event)}
       >
         Search
+      </Button>
+      <Button
+        className={styles['search-button']}
+        variant="outlined"
+        onClick={(event) => props.clearResults(event)}
+      >
+        Clear Results
       </Button>
     </Box>
   );

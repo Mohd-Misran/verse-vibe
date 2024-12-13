@@ -33,7 +33,7 @@ export const post = async (endpoint: string, data: object) => {
 export const get = async (endpoint: string, params: object) => {
   try {
     const response = await api.get(endpoint, { params });
-    return response.data;
+    return response;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       handleAxiosError(error);
