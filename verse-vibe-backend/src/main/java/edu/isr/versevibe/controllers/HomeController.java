@@ -1,5 +1,6 @@
 package edu.isr.versevibe.controllers;
 
+import edu.isr.versevibe.dto.spotify.SpotifySearchResponse;
 import edu.isr.versevibe.service.index.SongSearchService;
 import edu.isr.versevibe.service.spotify.SpotifyService;
 import jakarta.annotation.Resource;
@@ -16,8 +17,7 @@ public class HomeController {
     private SpotifyService spotifyService;
 
     @GetMapping("/")
-    public String home() {
-        spotifyService.searchTrack(null, null);
-        return "Hello World";
+    public SpotifySearchResponse home() {
+        return spotifyService.searchTrack("Beautiful Bliss", "Wale");
     }
 }

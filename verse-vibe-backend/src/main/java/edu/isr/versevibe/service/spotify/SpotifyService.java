@@ -1,7 +1,7 @@
 package edu.isr.versevibe.service.spotify;
 
-import edu.isr.versevibe.dto.SpotifyResponse;
+import edu.isr.versevibe.dto.spotify.SpotifySearchResponse;
 
 public interface SpotifyService {
-    SpotifyResponse searchTrack(String trackName, String albumName);
+    SpotifySearchResponse searchTrack(String trackName, String artistName);
 }

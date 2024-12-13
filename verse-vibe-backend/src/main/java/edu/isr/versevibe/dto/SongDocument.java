@@ -9,13 +9,12 @@ import java.util.List;
 @Setter
 @Getter
 public class SongDocument {
+    private Long id;
     private String title;
     private String tag;
-    private List<String> artist;
+    private List<String> artists;
     private String year;
-    private String features;
     private String lyrics;
-    private String id;
     private String language;
     private Date generatedAt;
 
@@ -24,9 +23,8 @@ public class SongDocument {
         return "SongDocument{" +
                 "title='" + title + '\'' +
                 ", tag='" + tag + '\'' +
-                ", artist='" + artist + '\'' +
+                ", artist='" + artists + '\'' +
                 ", year='" + year + '\'' +
-                ", features='" + features + '\'' +
                 ", lyrics='" + lyrics + '\'' +
                 ", id='" + id + '\'' +
                 ", language='" + language + '\'' +

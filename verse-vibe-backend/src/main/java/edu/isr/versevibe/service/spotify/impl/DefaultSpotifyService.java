@@ -1,33 +1,25 @@
 package edu.isr.versevibe.service.spotify.impl;
 
-import edu.isr.versevibe.dto.SpotifyResponse;
+import edu.isr.versevibe.config.SpotifyAPIConfig;
+import edu.isr.versevibe.dto.spotify.SpotifySearchResponse;
 import edu.isr.versevibe.service.spotify.SpotifyService;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Map;
-
-@Service
+@Service("spotifyService")
 public class DefaultSpotifyService implements SpotifyService {
-    @Value("${spotify.client-id}")
-    private String clientId;
-
-    @Value("${spotify.client-secret}")
-    private String clientSecret;
-
     @Value("${spotify.api-base-url}")
     private String apiBaseUrl;
+
+    @Resource(name = "spotifyAPIConfig")
+    private SpotifyAPIConfig spotifyAPIConfig;
 
     private final RestTemplate restTemplate;
 
@@ -36,8 +28,9 @@ public class DefaultSpotifyService implements SpotifyService {
     }
 
     @Override
-    public SpotifyResponse searchTrack(String trackName, String artistName) {
-        String accessToken = getAccessToken();
+    public SpotifySearchResponse searchTrack(String trackName, String artistName) {
+        String accessToken = spotifyAPIConfig.getApiToken();
+        
         String query = String.format("track:\"%s\" artist:\"%s\"", trackName, artistName);
 
         String url = UriComponentsBuilder.fromHttpUrl(apiBaseUrl + "/search")
@@ -54,45 +47,12 @@ public class DefaultSpotifyService implements SpotifyService {
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<SpotifyResponse> response = restTemplate.exchange(
+        ResponseEntity<SpotifySearchResponse> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,
                 entity,
-                SpotifyResponse.class
+                SpotifySearchResponse.class
         );
         return response.getBody();
-    }
-
-    private String getAccessToken() {
-        String tokenUrl = "https://accounts.spotify.com/api/token";
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        // Encode client ID and client secret in Base64 using Java's Base64 class
-        String auth = clientId + ":" + clientSecret;
-        String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
-        headers.set("Authorization", "Basic " + encodedAuth);
-
-        // Body parameters for grant type
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("grant_type", "client_credentials");
-
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-
-        ResponseEntity<Map> response = restTemplate.exchange(
-                tokenUrl,
-                HttpMethod.POST,
-                request,
-                Map.class
-        );
-
-        Map<String, Object> responseBody = response.getBody();
-        if (responseBody != null) {
-            System.out.println("Generated Access Token: " + responseBody.get("access_token"));
-            return (String) responseBody.get("access_token");
-        } else {
-            throw new RuntimeException("Failed to retrieve access token from Spotify");
-        }
     }
 }
