@@ -33,9 +33,20 @@ export default function Main() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleClearResults = async (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    setSearchResults([]);
+    setSearchPerformed(false);
+  };
+
   return (
     <Box className={styles['main-content']}>
-      <SearchBox value={searchQuery} onChange={handleSearchQueryInput} onClick={handleSearch} />
+      <SearchBox
+        value={searchQuery}
+        onChange={handleSearchQueryInput}
+        search={handleSearch}
+        clearResults={handleClearResults}
+      />
       {searchPerfomed && <SearchResults results={searchResults} />}
     </Box>
   );

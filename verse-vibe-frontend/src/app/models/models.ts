@@ -1,7 +1,7 @@
 interface SongMetadata {
-    spotifyId: string;
+    spotifyId?: string;
     name: string;
-    spotifyUrl: string;
+    spotifyUrl?: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -14,8 +14,8 @@ interface Image {
 }
 
 interface Album extends SongMetadata {
-    releaseDate: string;
-    images: Image[];
+    releaseDate?: string;
+    images?: Image[];
 }
 
 export interface Song extends SongMetadata {
@@ -23,7 +23,7 @@ export interface Song extends SongMetadata {
     elasticSearchId: string;
     artists: Artist[];
     album: Album;
-    duration: string;
-    explicit: boolean;
+    duration?: string;
+    explicit?: boolean;
 }
 

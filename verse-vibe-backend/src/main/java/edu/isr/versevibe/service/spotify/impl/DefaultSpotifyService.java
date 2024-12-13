@@ -45,7 +45,6 @@ public class DefaultSpotifyService implements SpotifyService {
                 .queryParam("limit", 5)
                 .queryParam("offset", 0)
                 .toUriString();
-        System.out.println("URL: " + url);
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
