@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.Objects;
+
 @Service("spotifyService")
 public class DefaultSpotifyService implements SpotifyService {
     @Value("${spotify.api-base-url}")
@@ -30,8 +32,11 @@ public class DefaultSpotifyService implements SpotifyService {
     @Override
     public SpotifySearchResponse searchTrack(String trackName, String artistName) {
         String accessToken = spotifyAPIConfig.getApiToken();
-        
-        String query = String.format("track:\"%s\" artist:\"%s\"", trackName, artistName);
+
+        String query = String.format("track:\"%s\"", trackName);
+        if (Objects.nonNull(artistName)) {
+            query = String.format("\"%s\" artist:\"%s\"", query, artistName);
+        }
 
         String url = UriComponentsBuilder.fromHttpUrl(apiBaseUrl + "/search")
                 .queryParam("q", query)
