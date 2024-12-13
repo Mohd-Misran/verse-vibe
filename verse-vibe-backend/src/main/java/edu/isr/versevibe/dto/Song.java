@@ -9,8 +9,8 @@ import java.util.List;
 @Setter
 public class Song {
     private String elasticsearchId;
-    private String id;
+    private Long docId;
     private String title;
-    private List<String> artist;
+    private List<String> artists;
     private String year;
 }

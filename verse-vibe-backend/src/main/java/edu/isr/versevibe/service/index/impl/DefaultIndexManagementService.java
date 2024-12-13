@@ -3,18 +3,17 @@ package edu.isr.versevibe.service.index.impl;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
 import co.elastic.clients.elasticsearch.core.BulkResponse;
-import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import co.elastic.clients.elasticsearch.indices.CreateIndexResponse;
 import co.elastic.clients.elasticsearch.indices.DeleteIndexResponse;
 import co.elastic.clients.elasticsearch.indices.ExistsRequest;
 import com.fasterxml.jackson.databind.MappingIterator;
+import edu.isr.versevibe.config.ElasticSearchConfig;
 import edu.isr.versevibe.dto.SongDocument;
 import edu.isr.versevibe.service.index.IndexManagementService;
 import edu.isr.versevibe.utils.CSVUtils;
 import edu.isr.versevibe.utils.IOUtils;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -23,9 +22,9 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
-import static edu.isr.versevibe.constants.Constants.ATTRIBUTE_MAPPINGS;
 import static edu.isr.versevibe.constants.Constants.INDEX_CREATION_ERROR;
 import static edu.isr.versevibe.constants.Constants.INDEX_NAME;
 
@@ -33,8 +32,12 @@ import static edu.isr.versevibe.constants.Constants.INDEX_NAME;
 public class DefaultIndexManagementService implements IndexManagementService {
     private final ElasticsearchClient searchClient;
     private int indexedDocumentsCount;
+
     @Value("${lyrics.file.path}")
     private String filePath;
+
+    @Value("${elasticsearch.attribute-mappings.path}")
+    private String attributeMappingsPath;
 
     @Value("${document.batch.size}")
     private int batchSize;
@@ -64,7 +67,7 @@ public class DefaultIndexManagementService implements IndexManagementService {
     }
 
     @SneakyThrows
-    public <SongDocument> void bulkIndex(final String indexName, final List<SongDocument> documents) {
+    public void bulkIndex(final String indexName, final List<edu.isr.versevibe.dto.SongDocument> documents) {
         final List<BulkOperation> operations = new ArrayList<>();
         for (SongDocument document : documents) {
             final String id = UUID.randomUUID().toString();
@@ -93,12 +96,14 @@ public class DefaultIndexManagementService implements IndexManagementService {
     }
 
     @Override
-    public boolean deleteIndexIfExists(String indexName) throws IOException {
+    public void deleteIndexIfExists(String indexName) throws IOException {
         final boolean exists = searchClient.indices().exists(e -> e.index(indexName)).value();
         if (exists) {
-            return deleteIndex(indexName);
+            boolean ack = deleteIndex(indexName);
+            if (ack) {
+                System.out.println("Deleted index " + indexName);
+            }
         }
-        return false;
     }
 
     private boolean deleteIndex(String indexName) throws IOException {
@@ -113,8 +118,11 @@ public class DefaultIndexManagementService implements IndexManagementService {
         deleteIndexIfExists(INDEX_NAME);
         System.out.println("------------------------------------------------------------------------");
         System.out.println("Indexing song documents");
-        final boolean indexCreated = createIndex(INDEX_NAME, ATTRIBUTE_MAPPINGS);
-        try (MappingIterator<Map<String, String>> csvIterator = IOUtils.initReader(filePath)) {
+        String attributeMappings = ElasticSearchConfig.getAttributeMappings(attributeMappingsPath);
+        final boolean indexCreated = createIndex(INDEX_NAME, attributeMappings);
+        MappingIterator<Map<String, String>> csvIterator = null;
+        try {
+            csvIterator = IOUtils.initReader(filePath);
             if (Boolean.TRUE.equals(indexCreated)) {
                 while (csvIterator.hasNext()) {
                     if (documentCounter >= batchSize) {
@@ -132,6 +140,14 @@ public class DefaultIndexManagementService implements IndexManagementService {
                 }
             } else {
                 System.out.println(INDEX_CREATION_ERROR);
+            }
+        } catch (Exception e) {
+            System.err.println(INDEX_CREATION_ERROR + e.getMessage());
+            throw e;
+        }
+        finally {
+            if (Objects.nonNull(csvIterator)) {
+                csvIterator.close();
             }
         }
     }
