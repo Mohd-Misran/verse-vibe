@@ -4,10 +4,10 @@ const theme = createTheme({
   palette: {
     mode: 'light',
     background: {
-      default: 'var(--background)',
+      paper: '#ffffff',
     },
     text: {
-      primary: 'var(--foreground)',
+      primary: '#121212',
     },
     primary: {
       main: '#1db954',
@@ -17,7 +17,7 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: 'Arial, "Helvetica Neue", Helvetica, sans-serif',
     fontSize: 16,
   },
 });

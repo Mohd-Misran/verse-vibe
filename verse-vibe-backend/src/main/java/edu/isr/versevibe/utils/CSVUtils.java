@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -19,14 +20,22 @@ public class CSVUtils {
     public static SongDocument populateSongDTO(final Map<String, String> csvRecord) {
         try {
             final SongDocument songDocument = new SongDocument();
+
+            String id = csvRecord.getOrDefault("id", null);
+            if (Objects.nonNull(id)) {
+                songDocument.setId(Long.valueOf(id));
+            }
+
             songDocument.setTitle(csvRecord.getOrDefault("title", null));
             songDocument.setTag(csvRecord.getOrDefault("tag", null));
-            songDocument.setArtist(new ArrayList<>(populateArtistData(csvRecord.getOrDefault("artist", null),
-                    csvRecord.getOrDefault("features", null))));
+            songDocument.setArtists(new ArrayList<>(
+                    populateArtistData(
+                            csvRecord.getOrDefault("artist", null),
+                            csvRecord.getOrDefault("features", null)
+                    )
+            ));
             songDocument.setYear(csvRecord.getOrDefault("year", null));
-            songDocument.setFeatures(csvRecord.getOrDefault("features", null));
             songDocument.setLyrics(csvRecord.getOrDefault("lyrics", null));
-            songDocument.setId(csvRecord.getOrDefault("id", null));
             songDocument.setLanguage(csvRecord.getOrDefault("language_ft", null));
             songDocument.setGeneratedAt(new Date());
             return songDocument;
